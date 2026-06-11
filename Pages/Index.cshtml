@@ -1,1 +1,74 @@
+@page
+@using FancyTextGenerator.Services
+@{
+    ViewData["Title"] = "Fancy Text Generator";
+}
 
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Fancy Text Generator</title>
+    <link rel="stylesheet" href="/css/site.css" />
+</head>
+
+<body>
+
+<h1>Fancy Text Generator</h1>
+
+<textarea id="input" placeholder="Type something..."></textarea>
+
+<div id="results"></div>
+
+<script>
+const fonts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(FontGenerator.Fonts));
+
+const normal = "abcdefghijklmnopqrstuvwxyz";
+
+function convert(text, map)
+{
+    let out = "";
+    for (let c of text)
+    {
+        let i = normal.indexOf(c.toLowerCase());
+        out += i >= 0 ? map[i] : c;
+    }
+    return out;
+}
+
+const input = document.getElementById("input");
+const results = document.getElementById("results");
+
+function render()
+{
+    results.innerHTML = "";
+
+    for (const [name, map] of Object.entries(fonts))
+    {
+        const text = convert(input.value, map);
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="title">${name}</div>
+            <div class="text">${text}</div>
+        `;
+
+        card.onclick = () =>
+        {
+            navigator.clipboard.writeText(text);
+            card.classList.add("copied");
+            setTimeout(() => card.classList.remove("copied"), 300);
+        };
+
+        results.appendChild(card);
+    }
+}
+
+input.addEventListener("input", render);
+render();
+</script>
+
+</body>
+</html>
